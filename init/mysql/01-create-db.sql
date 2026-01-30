@@ -1,0 +1,2 @@
+-- 可选：额外创建测试库或表
+CREATE DATABASE IF NOT EXISTS xdev DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;

@@ -1,0 +1,147 @@
+name: xdev-env
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: xdev-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: ${TZ}
+      MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
+    ports:
+      - "${MYSQL_PORT}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init/mysql:/docker-entrypoint-initdb.d:ro
+    command: ["--default-authentication-plugin=mysql_native_password"]
+    networks: [xdev]
+
+  redis:
+    image: redis:latest
+    container_name: xdev-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    networks: [xdev]
+
+  postgres:
+    image: postgres:latest
+    container_name: xdev-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TZ: ${TZ}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./init/postgres:/docker-entrypoint-initdb.d:ro
+    networks: [xdev]
+
+  kafka:
+    image: apache/kafka:4.1.1
+    container_name: xdev-kafka
+    restart: unless-stopped
+    environment:
+      environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9094,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9094
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+      TZ: ${TZ}
+    ports:
+      - "${KAFKA_PORT}:9094"
+    volumes:
+      - kafka_data:/kafka
+    networks: [xdev]
+
+  etcd:
+    image: registry.k8s.io/etcd:3.5.26-0
+    container_name: xdev-etcd
+    restart: unless-stopped
+    command:
+      - /usr/local/bin/etcd
+      - --name=etcd-1
+      - --data-dir=/etcd-data
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://etcd:2379
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --initial-advertise-peer-urls=http://etcd:2380
+      - --initial-cluster=etcd-1=http://etcd:2380
+      - --initial-cluster-state=new
+    ports:
+      - "${ETCD_PORT}:2379"
+    volumes:
+      - etcd_data:/etcd-data
+    networks: [xdev]
+
+  # Docker Registry (本地镜像仓库)
+  registry:
+    image: registry:latest
+    container_name: xdev-registry
+    restart: unless-stopped
+    environment:
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+    ports:
+      - "${REGISTRY_PORT}:5000"
+    volumes:
+      - registry_data:/var/lib/registry
+    networks: [xdev]
+
+networks:
+  xdev:
+    name: xdev-net
+
+volumes:
+  mysql_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/mysql
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/redis
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/postgres
+  kafka_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/kafka
+  registry_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/registry
+  etcd_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/etcd
