@@ -12,4 +12,5 @@ helm install postgres bitnami/postgresql \
   --set auth.username=${POSTGRES_USER} \
   --set persistence.size=5Gi \
   --set persistence.storageClass=local-path \
-  --set primary.service.type=ClusterIP
+  --set primary.service.type=ClusterIP \
+  --namespace $NAMESPACE
