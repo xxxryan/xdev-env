@@ -1,0 +1,65 @@
+# Kong Gateway DB-less mode — declarative config for JSON-RPC proxy.
+# Helm chart: kong/kong
+
+ingressController:
+  enabled: false
+
+env:
+  database: "off"
+
+proxy:
+  type: ClusterIP
+
+dblessConfig:
+  config: |
+    _format_version: "3.0"
+
+    services:
+      - name: arb-mainnet
+        url: http://arb-mainnet.vvwallet.org
+        routes:
+          - name: arb-mainnet-route
+            paths:
+              - /arb/mainnet
+            strip_path: true
+            methods:
+              - POST
+
+      - name: btc-mainnet
+        url: http://btc-mainnet.vvwallet.org
+        routes:
+          - name: btc-mainnet-route
+            paths:
+              - /btc/mainnet
+            strip_path: true
+            methods:
+              - POST
+
+      - name: eth-mainnet
+        url: http://eth-mainnet.vvwallet.org
+        routes:
+          - name: eth-mainnet-route
+            paths:
+              - /eth/mainnet
+            strip_path: true
+            methods:
+              - POST
+
+    plugins:
+      - name: key-auth
+        config:
+          key_names:
+            - apikey
+          key_in_header: true
+          key_in_query: true
+          key_in_body: false
+
+      - name: rate-limiting
+        config:
+          second: 10000
+          policy: local
+
+    consumers:
+      - username: vwallet
+        keyauth_credentials:
+          - key: 79ac5924311d06260a4fa8992516e24b

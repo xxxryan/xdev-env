@@ -82,6 +82,7 @@ $RECYCLE.BIN/
 .cursorindexingignore
 
 .env
+.tmp/
 
 # data：只保留目录结构（.gitkeep），不跟踪数据文件
 data/postgres/*

@@ -8,9 +8,8 @@ REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
 # shellcheck source=common.sh
 source "$SCRIPT_DIR/common.sh"
 load_env
-ensure_helm_repo
 
-helm upgrade --install redis bitnami/redis \
+helm upgrade --install redis redis \
   --create-namespace \
   --set architecture=standalone \
   --set auth.enabled=false \
@@ -18,6 +17,3 @@ helm upgrade --install redis bitnami/redis \
   --set persistence.size=1Gi \
   --set persistence.storageClass=local-path \
   --namespace "$NAMESPACE"
-
-ensure_local_port_forward "$NAMESPACE" "redis-master" "$REDIS_PORT" "6379" "redis"
-echo "Redis is available at localhost:${REDIS_PORT}"
