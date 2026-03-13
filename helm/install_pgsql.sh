@@ -25,12 +25,14 @@ helm upgrade --install postgres bitnami/postgresql \
   --set auth.username="${POSTGRES_USER}" \
   --set auth.password="${POSTGRES_PASSWORD}" \
   --set auth.database="${POSTGRES_DB}" \
-  --set primary.service.type=NodePort \
-  --set primary.service.nodePorts.postgresql="${POSTGRES_PORT}" \
   --set persistence.size=1Gi \
   --set persistence.storageClass=local-path \
   --namespace "$NAMESPACE"
 
 echo ""
-echo "PostgreSQL is available at 127.0.0.1:${POSTGRES_PORT}"
+echo "PostgreSQL is installed in namespace ${NAMESPACE}."
+echo "Run this in another terminal to access it locally:"
+echo "  kubectl -n ${NAMESPACE} port-forward svc/postgres-postgresql ${POSTGRES_PORT}:5432"
+echo ""
+echo "After port-forward is running, PostgreSQL is available at 127.0.0.1:${POSTGRES_PORT}"
 echo "  psql \"postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:${POSTGRES_PORT}/${POSTGRES_DB}\""
