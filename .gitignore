@@ -97,3 +97,5 @@ data/registry/*
 !data/registry/.gitkeep
 data/kafka/*
 !data/kafka/.gitkeep
+data/clickhouse/*
+!data/clickhouse/.gitkeep
